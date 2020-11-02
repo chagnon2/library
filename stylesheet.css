@@ -1,4 +1,6 @@
 body {
+    position: relative;
+    z-index: 1;
     margin: 0;
     background-color: rgb(255, 240, 229);
 }
@@ -58,10 +60,10 @@ body {
 }
 
 .main {
-    margin:0;
-
-    display: grid;
-    grid-template-columns: 20% 20% 20% 20% 20%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }
 
 .book {
@@ -86,10 +88,18 @@ body {
     box-shadow: -8px 8px black;
     transform: translate(8px,-8px);
 }
-
+.miniHeader {
+    display: flex;
+    flex-direction: row;
+}
 .type {
     font-size: 10px;
     text-align: start;
+}
+.read {
+    font-size: 10px;
+    margin-left: auto;
+    text-align: end;
 }
 .title {
     font-weight: bold;
@@ -116,4 +126,71 @@ body {
 .delete:hover {
     transform: scale(1.1);
 
+}
+.readStatusChanger {
+    text-align: center;
+    margin-left: 15px;
+    margin-right: 15px;
+    padding: 3px;
+    background-color: rgb(27, 150, 188);
+    color: black;
+    transition: transform 0.2s;
+    transition-timing-function: ease-in-out;
+    transition-delay: 0.01s;
+}
+.readStatusChanger:hover {
+    transform: scale(1.1);
+
+}
+
+.popup {
+    background-color: white;
+    color: black;
+    border: solid;
+    border-width: 1px;
+
+    text-align: center;
+
+    visibility: hidden;
+    position: fixed;
+    margin-top: 55px;
+    margin-left: 25%;
+    padding: 20px;
+    z-index: 2;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transform: scale(0);
+
+}
+.animation {
+    animation: popupAnimation 0.2s ease-in 0s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+} 
+@keyframes popupAnimation {
+    from {
+        visibility: visible;
+        transform: scale(0);
+    }
+    to {
+        visibility: visible;
+        transform: scale(1);
+    }
+}
+.animationOut {
+    animation: popupAnimationOut 0.2s ease-in 0s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+} 
+@keyframes popupAnimationOut {
+    from {
+        visibility: visible;
+        transform: scale(1);
+    }
+    to {
+        visibility: visible;
+        transform: scale(0);
+    }
 }

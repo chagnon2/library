@@ -153,9 +153,11 @@ body {
 
     visibility: hidden;
     position: fixed;
-    margin-top: 55px;
-    margin-left: 25%;
+    left: 0;
+    right: 0;
+    margin: 5% auto;
     padding: 20px;
+    width: 200px;
     z-index: 2;
     
     display: flex;

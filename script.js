@@ -1,15 +1,18 @@
 let myLibrary = [];
 const main = document.querySelector(`div[class="main"]`)
 const newBook = document.querySelector(`div[class="newBook"]`);
+const signIn = document.querySelector(`div[class="sign-in"]`);
 const popup = document.querySelector(`div[class="popup"]`);
+const popupSignIn = document.querySelector(`div[class="popup-sign-in"]`);
 const okButton = document.querySelector(`input[value="Ok"]`);
 const cancelButton = document.querySelector(`input[value="Cancel"]`);
 
-function Book(title,author,pages,read) {
+function Book(title,author,pages,read,key) {
     this.title = title;
     this.author = author;
     this.pages = pages;
     this.read = read;
+    this.key = key;
 
     this.defineReadString = function () {
         let stringRead = "";
@@ -48,6 +51,10 @@ function Book(title,author,pages,read) {
         pDelete.classList.add("delete");
         pDelete.textContent = `Delete`;
         pDelete.addEventListener("click", () =>{
+            var user = firebase.auth().currentUser;
+            if (user) {
+                firebase.database().ref("/" + user.uid + "/" + myLibrary[myLibrary.indexOf(this)].key).remove();
+            }
             myLibrary.splice(myLibrary.indexOf(this),1);
             main.innerHTML = "";
             printBooks(myLibrary);
@@ -57,8 +64,24 @@ function Book(title,author,pages,read) {
         pReadStatusChanger.classList.add("readStatusChanger");
         pReadStatusChanger.textContent = "Change read status";
         pReadStatusChanger.addEventListener("click", () =>{
-            if (myLibrary[myLibrary.indexOf(this)].read == true || myLibrary[myLibrary.indexOf(this)].read == "true") {myLibrary[myLibrary.indexOf(this)].read = false;}
-            else {myLibrary[myLibrary.indexOf(this)].read = true;}
+            if (myLibrary[myLibrary.indexOf(this)].read == true || myLibrary[myLibrary.indexOf(this)].read == "true") {
+                myLibrary[myLibrary.indexOf(this)].read = false;
+                var user = firebase.auth().currentUser;
+                if (user) {
+                    var updates = {};
+                    updates["/" + user.uid + "/" + myLibrary[myLibrary.indexOf(this)].key + "/read/"] = "false";
+                    firebase.database().ref().update(updates);
+                }
+            }
+            else {
+                myLibrary[myLibrary.indexOf(this)].read = true;
+                var user = firebase.auth().currentUser;
+                if (user) {
+                    var updates = {};
+                    updates["/" + user.uid + "/" + myLibrary[myLibrary.indexOf(this)].key + "/read/"] = "true";
+                    firebase.database().ref().update(updates);
+                }
+            }
             main.innerHTML = "";
             printBooks(myLibrary);
         });
@@ -77,6 +100,26 @@ function printBooks (myLibrary) {
         book.appendDomElement();
     })
 }
+
+signIn.addEventListener("click", () => {
+    var user = firebase.auth().currentUser;
+
+    if (user) {
+        firebase.auth().signOut().then(function() {
+            myLibrary = [];
+            addBookToLibrary(mathMPSI);
+            addBookToLibrary(mathMP);
+            addBookToLibrary(OrauxXEns);
+            addBookToLibrary(DragonBallTome1);
+            main.innerHTML = "";
+            printBooks(myLibrary);
+        }).catch(function(error) {
+        });
+    } else {
+        popupSignIn.classList.remove("animationOut");
+        popupSignIn.classList.add("animation");
+    }
+});
 
 newBook.addEventListener("click", () => {
     popup.classList.remove("animationOut");
@@ -103,18 +146,30 @@ okButton.addEventListener("click", () => {
     if (inputReadStatus == "" || inputTitle == "" || inputAuthor == "" || inputPages == "") {
         alert("Vous devez remplir tous les champs");
     } else {
-        addBookToLibrary(new Book (inputTitle,inputAuthor,inputPages,inputReadStatus));
+        var user = firebase.auth().currentUser;
+        if (user) {
+            var newBookKey = firebase.database().ref().child("/" + user.uid + "/").push().key;
+            var updates = {};
+            updates["/" + user.uid + "/" + newBookKey] = {
+                author: inputAuthor,
+                pages: inputPages,
+                read: inputReadStatus,
+                title: inputTitle
+            };
+            firebase.database().ref().update(updates);
+        }
+        addBookToLibrary(new Book (inputTitle,inputAuthor,inputPages,inputReadStatus,newBookKey));
         main.innerHTML = "";
-        printBooks(myLibrary);
+        printBooks(myLibrary);   
     }
 });
 
 
 
-const mathMPSI = new Book ("Maths MPSI", "Nicolas Nguyen", "800", true);
-const mathMP = new Book ("Maths MP/MP*", "Ivan Gozard", "768", false);
-const OrauxXEns = new Book ("Oraux X/ENS", "Eric Amar", "408", true);
-const DragonBallTome1 = new Book ("Dragon Ball Tome 1 : Sangoku", "Akira Toryama", "100", true);
+const mathMPSI = new Book ("Maths MPSI", "Nicolas Nguyen", "800", true,"");
+const mathMP = new Book ("Maths MP/MP*", "Ivan Gozard", "768", false,"");
+const OrauxXEns = new Book ("Oraux X/ENS", "Eric Amar", "408", true,"");
+const DragonBallTome1 = new Book ("Dragon Ball Tome 1 : Sangoku", "Akira Toryama", "100", true,"");
 
 addBookToLibrary(mathMPSI);
 addBookToLibrary(mathMP);

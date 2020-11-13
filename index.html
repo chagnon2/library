@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>MyLibrary</title>
         <link rel="stylesheet" href="stylesheet.css">
+        <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css" />
     </head>
     <body>
         <div class="popup">
@@ -21,10 +22,20 @@
             <input type="submit" value="Ok">
             <input type="submit" value="Cancel">
         </div>
+        <div class="popup-sign-in">
+            <!-- The surrounding HTML is left untouched by FirebaseUI.
+            Your app may use that space for branding, controls and other customizations.-->
+            <div id="firebaseui-auth-container"></div>
+            <div id="loader">Loading...</div>
+        </div>
         <div class="header">
             <div class="logoAndTitle">
                 <img src="bookshelf.png" alt="logo" class="logo">
                 <p>My Library</p>
+            </div>
+            <div class="signedMessage"></div>
+            <div class="sign-in">
+                <p>Sign-in</p>
             </div>
             <div class="newBook">
                 <p>Add new book</p>
@@ -32,6 +43,117 @@
         </div>
         <div class="main">
         </div>
+
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-app.js"></script>
+
+        <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+        <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-analytics.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.0.1/firebase-database.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css" />
+
+        <script>
+            // Your web app's Firebase configuration
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+            var firebaseConfig = {
+                apiKey: "AIzaSyCNKf9H5F5W3eBYV7K6Htm05XKA83MabdQ",
+                authDomain: "mylibrary-studentproject.firebaseapp.com",
+                databaseURL: "https://mylibrary-studentproject.firebaseio.com",
+                projectId: "mylibrary-studentproject",
+                storageBucket: "mylibrary-studentproject.appspot.com",
+                messagingSenderId: "745929061345",
+                appId: "1:745929061345:web:132454f96fae86656e98a0",
+                measurementId: "G-RJBR8S4BNT"
+            };
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            firebase.analytics();
+
+            // Get a reference to the database service
+            var database = firebase.database();
+        </script>
+        <script type="text/javascript" src="script.js"></script>
+        <script>
+
+            // Initialize the FirebaseUI Widget using Firebase.
+            var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+            var uiConfig = {
+                callbacks: {
+                    signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                        // User successfully signed in.
+                        // Return type determines whether we continue the redirect automatically
+                        // or whether we leave that to developer to handle.
+                        return true;
+                    },
+                    uiShown: function() {
+                        // The widget is rendered.
+                        // Hide the loader.
+                        document.getElementById('loader').style.display = 'none';
+                    }
+                },
+                // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+                signInFlow: 'popup',
+                signInSuccessUrl: 'http://127.0.0.1:5500/index.html',
+                autoUpgradeAnonymousUsers: true,
+                signInOptions: [
+                    {
+                        // Leave the lines as is for the providers you want to offer your users.
+                        provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                        requireDisplayName: true
+                    }
+                ],
+                // Terms of service url.
+                tosUrl: '<your-tos-url>',
+                // Privacy policy url.
+                privacyPolicyUrl: '<your-privacy-policy-url>'
+            };
+
+            // The start method will wait until the DOM is loaded.
+            ui.start('#firebaseui-auth-container', uiConfig);
+
+            const signedMessage = document.querySelector(`div[class="signedMessage"]`);
+
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    var ref = firebase.database().ref("/" + user.uid);
+                    ref.once("value").then(function(snapshot) {
+                        if (!snapshot.exists()) {
+                            myLibrary.forEach(book => {
+                                var newBookKey = firebase.database().ref().child("/" + user.uid + "/").push().key;
+                                firebase.database().ref("/" + user.uid + "/" + newBookKey).set({
+                                    title: book.title,
+                                    author: book.author,
+                                    pages: book.pages,
+                                    read: book.read
+                                });
+                            });
+                        } else {
+                            myLibrary = [];
+                            firebase.database().ref("/" + user.uid + "/").orderByKey().once("value").then(function(snapshot) {
+                                snapshot.forEach(function(book) {
+                                    addBookToLibrary(new Book(book.val().title, book.val().author, book.val().pages, book.val().read,book.key));
+                                });
+                                main.innerHTML = "";
+                                printBooks(myLibrary);
+                            });
+                        }
+
+                    });
+                    signedMessage.innerHTML = `<p>Welcome ${user.displayName}</p>`;
+                    signIn.innerHTML = "<p>Sign-out</p>";
+                } else {
+                    signedMessage.innerHTML = `<p>Please sign-in</p>`;
+                    signIn.innerHTML = `<p>Sign-in</p>`;
+                }
+            });
+
+            
+        </script>
     </body>
-    <script type="text/javascript" src="script.js"></script>
 </html>

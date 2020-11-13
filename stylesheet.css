@@ -40,8 +40,12 @@ body {
 
 }
 
-.newBook {
+.signedMessage {
     margin-left: auto;
+    align-self: center;
+}
+
+.newBook {
     height: 50px;
     padding-left: 10px;
     padding-right:10px;
@@ -50,7 +54,22 @@ body {
     background-color: rgb(27, 188, 155);
 }
 
+.sign-in {
+    margin-left: auto;
+    height: 50px;
+    padding-left: 10px;
+    padding-right: 10px;
+    justify-self: flex-end;
+
+    background-color: rgb(139, 201, 236);
+}
+
 .newBook:hover {
+    background-color: white;
+    color: black;
+}
+
+.sign-in:hover {
     background-color: white;
     color: black;
 }
@@ -166,6 +185,21 @@ body {
     transform: scale(0);
 
 }
+
+.popup-sign-in {
+    visibility: hidden;
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: 5% auto;
+    z-index: 2;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transform: scale(0);
+}
+
 .animation {
     animation: popupAnimation 0.2s ease-in 0s;
     animation-iteration-count: 1;
